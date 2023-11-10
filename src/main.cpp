@@ -20,7 +20,7 @@
 // window, models and settings
 Window window;
 DrawBuffers draw_buffers;
-Model model;
+Model model,model2;
 Texture alternative_texture;
 struct Instance {
 	glm::mat4 matrix;
@@ -36,18 +36,24 @@ float angle_object = 0.f, outline_width  = 0.125f;
 int level = 1;
 const std::vector<std::string> vlevels = { "Easy", "Medium", "Hard" };
 
-void drawInstance(const Instance &instance, Shader &shader);
+void drawInstance(Model &model, Shader &shader);
 
 // extra callbacks
 void keyboardCallback(GLFWwindow* glfw_win, int key, int scancode, int action, int mods);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
 /// NUEVO
-unsigned int depthMapFBO;
+glm::vec4 lightPosition={-1.0,1.f,1.f,1.f};
+glm::vec3 posChookity={0.f,0.f,0.f};
 
+unsigned int depthMapFBO;
 void initInstances();
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 unsigned int depthMap;
+
+Shader shader_test;
+float near_plane = 1.0f, far_plane = 7.5f;
+glm::mat4 lightProjection = glm::ortho(-2.0f, 2.0f, -2.0f, 2b.0f, near_plane, far_plane); 
 
 int main() {
 	
@@ -61,8 +67,12 @@ int main() {
 	shader_silhouette = Shader ("shaders/silhouette");
 	shader_texture = Shader ("shaders/texture");
 	
+	shader_test=Shader("shaders/test");
+	
 	// load model and init instances
-	model = Model::loadSingle("chookity");
+	model = Model::loadSingle("chookity",Model::fNoTextures);
+	model2 = Model::loadSingle("track",Model::fNoTextures);
+	
 	alternative_texture = Texture("models/choosen.png",0);
 	initInstances();
 	
@@ -83,20 +93,18 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  
-	
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	
 	do {
 		glClearColor(0.8f,0.8f,0.7f,1.f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 		view_angle = std::min(std::max(view_angle,0.01f),1.72f);
-		
-		///NUEVO
-		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				
 		
 		// auto-rotate
 		/*double dt = ftime.newFrame();
@@ -105,7 +113,21 @@ int main() {
 		angle_object += static_cast<float>(1.f*dt*level);*/
 	
 		//for(auto &inst: instances)
-		drawInstance(instances[0],shader_texture);
+		
+		//drawDepthMap();
+		
+		// 1
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		drawInstance(model,shader_test);
+		drawInstance(model2,shader_test);
+		
+		// 2
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		shader_texture.use();
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		drawInstance(model,shader_texture);
+		drawInstance(model2,shader_texture);
 		
 		draw_buffers.draw(win_width,win_height);
 		
@@ -137,34 +159,33 @@ void keyboardCallback(GLFWwindow* glfw_win, int key, int scancode, int action, i
 }
 
 int findSelection(int x, int y) {
-	
-	glDisable(GL_MULTISAMPLE);
-	glClearColor(1.f,1.f,1.f,1.f);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-	glm::mat4 mrot = glm::rotate(glm::mat4{1.f},angle_object,{0.f,1.f,0.f});
-	shader_silhouette.use();
-	shader_silhouette.setUniform("outline_width",0.f);
-	glm::vec3 color_silhouette(1.f,0.f,0.f);
-	// Asigna un color a cada chookity de vector
-	for(size_t i=0;i<instances.size();++i) { 
-		const auto &mat = instances[i].matrix;
-		float r = (i%256)/255.f;  
-		float g = ((i/256)%256)/255.f; 
-		float b = ((i/256/256)%256)/255.f;
-		shader_silhouette.setUniform("color",glm::vec4{r,g,b,1.f});
-		// dibuja chookitys con ese color pero no se ve
-		drawInstance(instances[i],shader_silhouette);
-	}
-	glFlush();
-	glFinish();
-	// porque se dibujan en back buffer
-	glReadBuffer(GL_BACK);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	unsigned char data[3];
-	glReadPixels(x,y,1,1, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glEnable(GL_MULTISAMPLE);
-	int sel = int(data[0])+int(data[1])*256+int(data[2])*256*256;
-	if (sel>=instances.size()) sel = -1;
+//	
+//	glDisable(GL_MULTISAMPLE);
+//	glClearColor(1.f,1.f,1.f,1.f);
+//	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+//	glm::mat4 mrot = glm::rotate(glm::mat4{1.f},angle_object,{0.f,1.f,0.f});
+//	shader_silhouette.use();
+//	shader_silhouette.setUniform("outline_width",0.f);
+//	glm::vec3 color_silhouette(1.f,0.f,0.f);
+//	// Asigna un color a cada chookity de vector
+//	for(size_t i=0;i<instances.size();++i) { 
+//		const auto &mat = instances[i].matrix;
+//		float r = (i%256)/255.f;  
+//		float g = ((i/256)%256)/255.f; 
+//		float b = ((i/256/256)%256)/255.f;
+//		shader_silhouette.setUniform("color",glm::vec4{r,g,b,1.f});
+//		// dibuja chookitys con ese color pero no se ve
+//		drawInstance(instances[i],shader_silhouette);
+//	}
+//	glFlush();
+//	glFinish();
+//	// porque se dibujan en back buffer
+//	glReadBuffer(GL_BACK);
+//	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//	unsigned char data[3];
+//	glReadPixels(x,y,1,1, GL_RGB, GL_UNSIGNED_BYTE, data);
+//	glEnable(GL_MULTISAMPLE);
+	int sel = 0;//nstances.size()) sel = -1;
 	return sel;
 }
 
@@ -189,18 +210,28 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 	}
 }
 
-void drawInstance(const Instance &instance, Shader &shader) {
+void drawInstance(Model &model, Shader &shader) {
 	shader.use();
 	
 	auto mats = common_callbacks::getMatrixes();
-	glm::mat4 mrot = glm::rotate(glm::mat4{1.f},angle_object*instance.rot_speed,{0.f,1.f,0.f});
-	shader.setMatrixes(mats[0]*instance.matrix*mrot,mats[1],mats[2]);
+	
+//	glm::mat4 mrot = glm::rotate(glm::mat4{1.f},angle_object,{0.f,1.f,0.f});
+	
+	shader.setMatrixes(
+					   mats[0]/**mrot*/,
+					   mats[1],
+					   mats[2]);
+	
+	glm::mat4 lightView = glm::lookAt(glm::vec3(mats[0]*lightPosition), 
+									  glm::vec3( 0.0f, 0.0f,  0.0f), 
+									  glm::vec3( 0.0f, 1.0f,  0.0f));
+	
+	shader.setUniform("lightViewMatrix",lightView);
+	shader.setUniform("lightProjectionMatrix",lightProjection);
 	
 	// setup light and material
-	shader.setLight({-5.0,5.f,5.f,1.f}, glm::vec3{1.f,1.f,1.f}, 0.4f);
+	shader.setLight(mats[0]*lightPosition, glm::vec3{1.f,1.f,1.f}, 0.4f);
 	shader.setMaterial(model.material);
-	shader.setUniform("colorVar",instance.color_var);
-	(instance.is_the_choosen_one ? alternative_texture : model.texture).bind();
 	
 	// send geometry
 	shader.setBuffers(model.buffers);
@@ -224,7 +255,9 @@ void initInstances() {
 		inst.is_the_choosen_one = i == choosen_one;
 		auto mat = glm::mat4{1.f};
 		float dist = 0.15f+3.f*std::pow(float(i)/instances.size(),0.6f), ang = i*2*PI*GR;
-		mat = glm::translate(mat ,glm::vec3{std::sin(ang),0,std::cos(ang)}*dist);
+		
+		mat = glm::translate(mat ,posChookity*dist);
+		
 		mat = glm::scale(mat ,glm::vec3{1.f+rndf(.1f),1.f+rndf(.1f),1.f+rndf(.1f)}*.25f);
 		mat = glm::rotate(mat ,rndf(3.14f),{rndf(.20f),1.f,rndf(.20f)});
 		inst.matrix = mat ;

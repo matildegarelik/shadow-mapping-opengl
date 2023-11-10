@@ -9,10 +9,14 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform vec4 lightPosition;
 
+uniform mat4 lightViewMatrix; 
+uniform mat4 lightProjectionMatrix;
+
 out vec3 fragPosition;
 out vec3 fragNormal;
 out vec2 fragTexCoords;
 out vec4 lightVSPosition;
+out vec4 fragPosLightSpace;
 
 void main() {
 	mat4 vm = viewMatrix * modelMatrix;
@@ -22,4 +26,8 @@ void main() {
 	fragNormal = mat3(transpose(inverse(vm))) * vertexNormal;
 	lightVSPosition = viewMatrix * lightPosition;
 	fragTexCoords = vertexTexCoords;
+	
+	mat4 lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
+	fragPosLightSpace = lightSpaceMatrix * modelMatrix * vec4(vertexPosition,1.f);
+
 }
