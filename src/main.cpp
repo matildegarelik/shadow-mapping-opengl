@@ -36,24 +36,24 @@ float angle_object = 0.f, outline_width  = 0.125f;
 int level = 1;
 const std::vector<std::string> vlevels = { "Easy", "Medium", "Hard" };
 
-void drawInstance(Model &model, Shader &shader);
+glm::mat4 mti =  {{1.f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.f,0.f},{0.f,0.f,0.f,1.f}};
+void drawModel(Model &model, Shader &shader,glm::mat4 mt=mti);
 
 // extra callbacks
 void keyboardCallback(GLFWwindow* glfw_win, int key, int scancode, int action, int mods);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
-/// NUEVO
-glm::vec4 lightPosition={-1.0,1.f,1.f,1.f};
-glm::vec3 posChookity={0.f,0.f,0.f};
 
+/// NUEVO
 unsigned int depthMapFBO;
-void initInstances();
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 unsigned int depthMap;
-
 Shader shader_test;
-float near_plane = 1.0f, far_plane = 7.5f;
-glm::mat4 lightProjection = glm::ortho(-2.0f, 2.0f, -2.0f, 2b.0f, near_plane, far_plane); 
+
+glm::vec4 lightPosition={-2.0,1.5f,-1.f,1.f};
+glm::vec3 posChookity={0.f,0.f,0.f};
+float near_plane = 1.1f, far_plane = 4.5f;
+glm::mat4 lightProjection = glm::ortho(-1.0f, 2.0f, -1.0f, 1.0f, near_plane, far_plane); 
 
 int main() {
 	
@@ -74,15 +74,13 @@ int main() {
 	model2 = Model::loadSingle("track",Model::fNoTextures);
 	
 	alternative_texture = Texture("models/choosen.png",0);
-	initInstances();
 	
 	// main loop
 	FrameTimer ftime;
 	view_target.y = -.5f;
 //	view_pos.z *= 1.5;
 	view_angle = .35;
-	std::cout << "Wwhere is chookity?" << std::endl;
-	
+
 	///NUEVO
 	glGenFramebuffers(1, &depthMapFBO);
 	glGenTextures(1, &depthMap);
@@ -99,6 +97,10 @@ int main() {
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
+	// matriz transformación pollo
+	glm::mat4 mt1 =  {{1.f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.f,0.f},{0.f,0.f,0.f,4.f}};
+	// matriz transformación piso
+	glm::mat4 mt2 =  {{1.f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.f,0.f},{0.f,-0.25f,0.f,1.f}};
 	
 	do {
 		glClearColor(0.8f,0.8f,0.7f,1.f);
@@ -106,28 +108,20 @@ int main() {
 		view_angle = std::min(std::max(view_angle,0.01f),1.72f);
 				
 		
-		// auto-rotate
-		/*double dt = ftime.newFrame();
-		if (selected_instance==-1 or (not instances[selected_instance].is_the_choosen_one))
-			time_to_find_the_one += dt;
-		angle_object += static_cast<float>(1.f*dt*level);*/
-	
-		//for(auto &inst: instances)
-		
-		//drawDepthMap();
-		
 		// 1
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		drawInstance(model,shader_test);
-		drawInstance(model2,shader_test);
+		drawModel(model,shader_test,mt1);
+		drawModel(model2,shader_test,mt2);
+		
+		//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		
 		// 2
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		shader_texture.use();
 		glBindTexture(GL_TEXTURE_2D, depthMap);
-		drawInstance(model,shader_texture);
-		drawInstance(model2,shader_texture);
+		drawModel(model,shader_texture,mt1);
+		drawModel(model2,shader_texture,mt2);
 		
 		draw_buffers.draw(win_width,win_height);
 		
@@ -151,74 +145,25 @@ int main() {
 void keyboardCallback(GLFWwindow* glfw_win, int key, int scancode, int action, int mods) {
 	if (action==GLFW_PRESS) {
 		switch (key) {
-		case 'R': initInstances(); break;
+		//case 'R': initInstances(); break;
 		case 'L': level = (level+1)%vlevels.size(); break;
 		case 'B': draw_buffers.setNextBuffer(); break;
 		}
 	}
 }
 
-int findSelection(int x, int y) {
-//	
-//	glDisable(GL_MULTISAMPLE);
-//	glClearColor(1.f,1.f,1.f,1.f);
-//	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-//	glm::mat4 mrot = glm::rotate(glm::mat4{1.f},angle_object,{0.f,1.f,0.f});
-//	shader_silhouette.use();
-//	shader_silhouette.setUniform("outline_width",0.f);
-//	glm::vec3 color_silhouette(1.f,0.f,0.f);
-//	// Asigna un color a cada chookity de vector
-//	for(size_t i=0;i<instances.size();++i) { 
-//		const auto &mat = instances[i].matrix;
-//		float r = (i%256)/255.f;  
-//		float g = ((i/256)%256)/255.f; 
-//		float b = ((i/256/256)%256)/255.f;
-//		shader_silhouette.setUniform("color",glm::vec4{r,g,b,1.f});
-//		// dibuja chookitys con ese color pero no se ve
-//		drawInstance(instances[i],shader_silhouette);
-//	}
-//	glFlush();
-//	glFinish();
-//	// porque se dibujan en back buffer
-//	glReadBuffer(GL_BACK);
-//	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//	unsigned char data[3];
-//	glReadPixels(x,y,1,1, GL_RGB, GL_UNSIGNED_BYTE, data);
-//	glEnable(GL_MULTISAMPLE);
-	int sel = 0;//nstances.size()) sel = -1;
-	return sel;
-}
-
-bool isDoubleClick(int button, int action) {
-	if (button!=GLFW_MOUSE_BUTTON_LEFT) return false;
-	if(action!=GLFW_RELEASE) return false;
-	static double prev = 0.0;
-	double cur = glfwGetTime();
-	bool ret = (cur-prev<.5);
-	prev = cur;
-	return ret;
-}
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 	common_callbacks::mouseButtonCallback(window,button,action,mods);
-	if (isDoubleClick(button,action)) {
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);
-		selected_instance = findSelection(int(xpos),win_height-int(ypos));
-		if (selected_instance!=-1 and (not instances[selected_instance].is_the_choosen_one))
-			time_to_find_the_one += level+1;
-	}
 }
 
-void drawInstance(Model &model, Shader &shader) {
+void drawModel(Model &model, Shader &shader,glm::mat4 mt) {
 	shader.use();
 	
 	auto mats = common_callbacks::getMatrixes();
 	
-//	glm::mat4 mrot = glm::rotate(glm::mat4{1.f},angle_object,{0.f,1.f,0.f});
-	
 	shader.setMatrixes(
-					   mats[0]/**mrot*/,
+					   mats[0]*mt,
 					   mats[1],
 					   mats[2]);
 	
@@ -229,6 +174,9 @@ void drawInstance(Model &model, Shader &shader) {
 	shader.setUniform("lightViewMatrix",lightView);
 	shader.setUniform("lightProjectionMatrix",lightProjection);
 	
+	shader.setUniform("viewPos",view_pos);
+	shader.setUniform("lightPos",lightPosition);
+	
 	// setup light and material
 	shader.setLight(mats[0]*lightPosition, glm::vec3{1.f,1.f,1.f}, 0.4f);
 	shader.setMaterial(model.material);
@@ -236,33 +184,4 @@ void drawInstance(Model &model, Shader &shader) {
 	// send geometry
 	shader.setBuffers(model.buffers);
 	model.buffers.draw();
-}
-
-void initInstances() {
-	time_to_find_the_one = 0.0;
-	selected_instance = -1;
-	std::srand(std::time(0));
-	int choosen_one = rand()%instances.size()*.7;
-	for(size_t i=0;i<instances.size();++i) {
-		Instance &inst = instances[i];
-		auto rndf = [](float max) {
-			static std::mt19937 mt(std::time(0));
-			static std::uniform_real_distribution<float> rd;
-			return -max+rd(mt)*2.f*max;
-		};
-		constexpr float PI = 3.14159265359;
-		constexpr float GR = 1.61803398875;
-		inst.is_the_choosen_one = i == choosen_one;
-		auto mat = glm::mat4{1.f};
-		float dist = 0.15f+3.f*std::pow(float(i)/instances.size(),0.6f), ang = i*2*PI*GR;
-		
-		mat = glm::translate(mat ,posChookity*dist);
-		
-		mat = glm::scale(mat ,glm::vec3{1.f+rndf(.1f),1.f+rndf(.1f),1.f+rndf(.1f)}*.25f);
-		mat = glm::rotate(mat ,rndf(3.14f),{rndf(.20f),1.f,rndf(.20f)});
-		inst.matrix = mat ;
-		inst.rot_speed = 1.2f+rndf(.6f); 
-		if (rand()%2) inst.rot_speed *= -1.f;
-		inst.color_var = {rndf(.1f),rndf(.1f),rndf(.1f)};
-	}
 }

@@ -6,6 +6,9 @@ in vec2 fragTexCoords;
 in vec4 lightVSPosition;
 in vec4 fragPosLightSpace;
 
+uniform vec3 lightPos;
+uniform vec3 viewPos;
+
 // propiedades del material
 uniform sampler2D depthTexture; // ambient and diffuse components
 uniform vec3 ambientColor;
@@ -61,18 +64,19 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 }
 
 void main() {
-	vec2 texelSize = 1.0 / textureSize(depthTexture, 0);
+	/*vec2 texelSize = 1.0 / textureSize(depthTexture, 0);
 	vec4 t = texture(depthTexture,gl_FragCoord.xy * texelSize);
-	fragColor = vec4(t.x,t.y,0.f,1.f);
-//	vec3 phong = calcPhong(lightVSPosition, lightColor, ambientStrength,
-//						   ambientColor,diffuseColor,
-//						   specularColor, shininess);
-//	float shadow = ShadowCalculation(fragPosLightSpace);
-//	if(shadow == -1){
-//		fragColor=vec4(1.f,0.f,0.f,1.f);
-//	}else{
-//		vec3 lighting= (vec3(ambientColor*ambientStrength) * shadow+ phong*(1.f-shadow));
-//		fragColor = vec4(vec3(1.0-shadow),opacity);
-//	}
+	fragColor = vec4(t.x,t.y,0.f,1.f);*/
+	vec3 phong = calcPhong(lightVSPosition, lightColor, ambientStrength,
+						   ambientColor,diffuseColor,
+						   specularColor, shininess);
+	float shadow = ShadowCalculation(fragPosLightSpace);
+	if(shadow == -1){
+		fragColor=vec4(1.f,0.f,0.f,1.f);
+	}else{
+		vec3 lighting= (vec3(ambientColor*ambientStrength) * shadow+ phong*(1.f-shadow));
+		//fragColor = vec4(vec3(1.0-shadow),opacity);
+		fragColor = vec4(lighting,opacity);
+	}
 }
 

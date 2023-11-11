@@ -15,11 +15,11 @@ tab_width=4
 tab_use_spaces=0
 explorer_path=.
 inherits_from=
-current_source=main.cpp
+current_source=..\bin\shaders\texture.vert
 path_char=\
 [source]
 path=main.cpp
-cursor=53:17
+cursor=54:20
 open=true
 [source]
 path=..\common\utils\ObjMesh.cpp
@@ -123,11 +123,11 @@ path=..\bin\shaders\phong.vert
 cursor=19:22
 [other]
 path=..\bin\shaders\texture.frag
-cursor=67:4
+cursor=39:47
 open=true
 [other]
 path=..\bin\shaders\texture.vert
-cursor=30:51
+cursor=25:3
 open=true
 [other]
 path=..\bin\shaders\funcs\calcPhong.frag
@@ -162,7 +162,7 @@ cursor=0:0
 open=true
 [other]
 path=..\bin\shaders\test.vert
-cursor=0:0
+cursor=13:1
 open=true
 [config]
 name=Debug_Linux
