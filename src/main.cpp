@@ -48,7 +48,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 unsigned int depthMapFBO;
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 unsigned int depthMap;
-Shader shader_test;
+Shader shader_test,shader_phong;
 
 //glm::vec4 lightPosition={-1.0,1.f,1.f,1.f};
 glm::vec3 posChookity={0.f,0.f,0.f};
@@ -56,9 +56,12 @@ float near_plane = 1.1f, far_plane = 7.5f;
 //glm::mat4 lightProjection = glm::ortho(-.50f, .50f, -.50f, .50f, near_plane, far_plane); 
 
 /// NUEVO 2
+bool rotate_autom=0;
 float lightRotationAngle = /*glfwGetTime() * */0.5f;
 float lightDistance = 2.0f;
-float rotate, width;
+float rotate, width=2.0f;
+float bias= 0.f;
+bool pcf=0;
 
 int main() {
 	
@@ -71,11 +74,12 @@ int main() {
 	// setup OpenGL state and load shaders
 	shader_silhouette = Shader ("shaders/silhouette");
 	shader_texture = Shader ("shaders/texture");
+	shader_phong = Shader("shaders/phong");
 	
 	shader_test=Shader("shaders/test");
 	
 	// load model and init instances
-	model = Model::loadSingle("chookity",Model::fNoTextures);
+	model = Model::loadSingle("chookity");
 	model2 = Model::loadSingle("track",Model::fNoTextures);
 	
 	alternative_texture = Texture("models/choosen.png",0);
@@ -103,7 +107,7 @@ int main() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	// matriz transformación pollo
-	glm::mat4 mt1 =  {{1.f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.f,0.f},{0.f,0.f,0.f,4.f}};
+	glm::mat4 mt1 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{0.f,0.f,0.f,1.f}};
 	// matriz transformación piso
 	glm::mat4 mt2 =  {{1.f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.f,0.f},{0.f,-0.25f,0.f,1.f}};
 	
@@ -126,9 +130,21 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 		glViewport(0,0,win_width,win_height);
 		shader_texture.use();
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
-		drawModel(model,shader_texture,mt1);
-		drawModel(model2,shader_texture,mt2);
+		if(model.texture.isOk()){
+			drawModel(model,shader_texture,mt1);
+		}else{
+			drawModel(model,shader_phong,mt1);
+		}
+		
+		if(model2.texture.isOk()){
+			drawModel(model2,shader_texture,mt2);
+		}else{
+			drawModel(model2,shader_phong,mt2);
+		}
+		
+		
 		
 		draw_buffers.draw(win_width,win_height);
 		
@@ -137,7 +153,10 @@ int main() {
 			ImGui::SliderFloat("LightProjection Width",&width,-1.5f,2.5f);
 			ImGui::SliderFloat("Near plane",&near_plane,0.f,2.f);
 			ImGui::SliderFloat("Far plane",&far_plane,5.f,15.f);
-			ImGui::SliderFloat("Rotate",&rotate,0,8);
+			ImGui::SliderFloat("Rotate manual",&rotate,0,8);
+			ImGui::Checkbox("Rotate autom",&rotate_autom);
+			ImGui::SliderFloat("Bias",&bias,0,1);
+			ImGui::Checkbox("PCF",&pcf);
 			
 			draw_buffers.addImGuiSettings(window);
 		});
@@ -174,7 +193,9 @@ void drawModel(Model &model, Shader &shader,glm::mat4 mt) {
 					   mats[2]);
 
 	/// NUEVO 2
-	lightRotationAngle = /*glfwGetTime() **/ rotate;
+	lightRotationAngle = rotate;
+	if(rotate_autom) lightRotationAngle = glfwGetTime()*0.5f;
+	
 	lightDistance = 1.0f;
 	float lightPosX = cos(lightRotationAngle) * lightDistance;
 	float lightPosY = 1.f;
@@ -190,11 +211,18 @@ void drawModel(Model &model, Shader &shader,glm::mat4 mt) {
 	shader.setUniform("lightViewMatrix",lightView);
 	shader.setUniform("lightProjectionMatrix",lightProjection);
 	
-	shader.setUniform("viewPos",view_pos);
+	shader.setUniform("bias",bias);
+	shader.setUniform("pcf",pcf);
+	
+	shader.setUniform("depthTexture",0);
 	
 	// setup light and material
 	shader.setLight(mats[0]*lightPosition, glm::vec3{1.f,1.f,1.f}, 0.4f);
 	shader.setMaterial(model.material);
+	if(model.texture.isOk()) {
+		model.texture.bind(1);
+		shader.setUniform("colorTexture",1);
+	};
 	
 	// send geometry
 	shader.setBuffers(model.buffers);

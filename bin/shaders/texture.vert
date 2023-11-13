@@ -22,7 +22,7 @@ void main() {
 	mat4 vm = viewMatrix * modelMatrix;
 	vec4 vmp = vm * vec4(vertexPosition,1.f);
 	gl_Position = projectionMatrix * vmp;
-	fragPosition = vec3(vmp);
+	fragPosition = vec3(vmp)/vmp.w;
 	//fragPosition = vec3(modelMatrix * vec4(vertexPosition,1.f));
 	fragNormal = mat3(transpose(inverse(vm))) * vertexNormal;
 	lightVSPosition = viewMatrix * lightPosition;
