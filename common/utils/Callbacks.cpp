@@ -60,14 +60,14 @@ void viewResizeCallback(GLFWwindow *, int w, int h) {
 }
 
 render_matrixes_t getMatrixes() {
-	return { glm::rotate(glm::mat4(1.f),view_angle,glm::vec3{1.f,0.f,0.f}) * glm::rotate(glm::mat4(1.f),model_angle,glm::vec3{0.f,1.f,0.f}),
-	         glm::lookAt( view_pos, view_target, glm::vec3{0.f,1.f,0.f} ),
-		     use_perspective
-			   ? glm::perspective( glm::radians(view_fov), float(win_width)/float(win_height), 0.1f, 100.f )
-			   : glm::ortho(-1.5f,+1.5f,-1.5f,+1.5f,-100.f,+100.f)
-	       };
+	auto mrot = glm::rotate(glm::mat4(1.f),-model_angle,glm::vec3{0.f,1.f,0.f})*glm::rotate(glm::mat4(1.f),-view_angle+.5f,glm::vec3{1.f,0.f,0.f});
+	return { glm::mat4(1.f),
+		glm::lookAt( glm::vec3(mrot*glm::vec4(view_pos,1.f)), view_target, glm::vec3{0.f,1.f,0.f} ),
+		use_perspective
+		? glm::perspective( glm::radians(view_fov), float(win_width)/float(win_height), 0.1f, 100.f )
+		: glm::ortho(-1.5f,+1.5f,-1.5f,+1.5f,-100.f,+100.f)
+	};
 }
-
 } // namespace
 
 void setCommonCallbacks(GLFWwindow * window) {

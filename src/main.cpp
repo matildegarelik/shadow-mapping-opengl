@@ -50,10 +50,10 @@ const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 unsigned int depthMap;
 Shader shader_test;
 
-glm::vec4 lightPosition={-2.0,1.5f,-1.f,1.f};
+glm::vec4 lightPosition={-1.0,1.f,1.f,1.f};
 glm::vec3 posChookity={0.f,0.f,0.f};
-float near_plane = 1.1f, far_plane = 4.5f;
-glm::mat4 lightProjection = glm::ortho(-1.0f, 2.0f, -1.0f, 1.0f, near_plane, far_plane); 
+float near_plane = 1.1f, far_plane = 7.5f;
+glm::mat4 lightProjection = glm::ortho(-.50f, .50f, -.50f, .50f, near_plane, far_plane); 
 
 int main() {
 	
@@ -115,7 +115,7 @@ int main() {
 		drawModel(model2,shader_test,mt2);
 		
 		//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-		
+		glViewport(0,0,win_width,win_height);
 		// 2
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		shader_texture.use();
@@ -126,13 +126,13 @@ int main() {
 		draw_buffers.draw(win_width,win_height);
 		
 		// settings sub-window
-		/*window.ImGuiDialog("Find The Choosen One!",[&](){
+		window.ImGuiDialog("Find The Choosen One!",[&](){
 			ImGui::LabelText("","Time: %.3f s",time_to_find_the_one);
 			ImGui::Combo("Level (L)", &level, vlevels);
-			if (ImGui::Button("Restart (R)")) initInstances();
+			//if (ImGui::Button("Restart (R)")) initInstances();
 			ImGui::SliderFloat("outline width",&outline_width,.05,.5);
 			draw_buffers.addImGuiSettings(window);
-		});*/
+		});
 		glfwSwapInterval(1); 
 		
 		// finish frame
