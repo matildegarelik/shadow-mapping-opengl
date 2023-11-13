@@ -50,13 +50,13 @@ const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 unsigned int depthMap;
 Shader shader_test;
 
-glm::vec4 lightPosition={-1.0,1.f,1.f,1.f};
+//glm::vec4 lightPosition={-1.0,1.f,1.f,1.f};
 glm::vec3 posChookity={0.f,0.f,0.f};
 float near_plane = 1.1f, far_plane = 7.5f;
-glm::mat4 lightProjection = glm::ortho(-.50f, .50f, -.50f, .50f, near_plane, far_plane); 
+//glm::mat4 lightProjection = glm::ortho(-.50f, .50f, -.50f, .50f, near_plane, far_plane); 
 
 /// NUEVO 2
-float lightRotationAngle = glfwGetTime() * 0.5f;
+float lightRotationAngle = /*glfwGetTime() * */0.5f;
 float lightDistance = 2.0f;
 float rotate, width;
 
@@ -108,21 +108,23 @@ int main() {
 	glm::mat4 mt2 =  {{1.f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.f,0.f},{0.f,-0.25f,0.f,1.f}};
 	
 	do {
-		glClearColor(0.8f,0.8f,0.7f,1.f);
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 		view_angle = std::min(std::max(view_angle,0.01f),1.72f);
 				
 		
 		// 1
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glViewport(0,0,SHADOW_WIDTH,SHADOW_HEIGHT);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		drawModel(model,shader_test,mt1);
 		drawModel(model2,shader_test,mt2);
 		
 		//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-		glViewport(0,0,win_width,win_height);
+		
 		// 2
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.8f,0.8f,0.7f,1.f);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+		glViewport(0,0,win_width,win_height);
 		shader_texture.use();
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 		drawModel(model,shader_texture,mt1);
@@ -132,10 +134,10 @@ int main() {
 		
 		// settings sub-window
 		window.ImGuiDialog("Shadow Mapping",[&](){
-			ImGui::SliderFloat("LightProjection Width",&width,0.f,1.5f);
+			ImGui::SliderFloat("LightProjection Width",&width,-1.5f,2.5f);
 			ImGui::SliderFloat("Near plane",&near_plane,0.f,2.f);
 			ImGui::SliderFloat("Far plane",&far_plane,5.f,15.f);
-			ImGui::SliderFloat("Rotate",&rotate,0,2);
+			ImGui::SliderFloat("Rotate",&rotate,0,8);
 			
 			draw_buffers.addImGuiSettings(window);
 		});
@@ -172,10 +174,10 @@ void drawModel(Model &model, Shader &shader,glm::mat4 mt) {
 					   mats[2]);
 
 	/// NUEVO 2
-	lightRotationAngle = glfwGetTime() * rotate;
+	lightRotationAngle = /*glfwGetTime() **/ rotate;
 	lightDistance = 1.0f;
 	float lightPosX = cos(lightRotationAngle) * lightDistance;
-	float lightPosY = lightPosition.y;
+	float lightPosY = 1.f;
 	float lightPosZ = sin(lightRotationAngle) * lightDistance;
 	glm::vec4 lightPosition={lightPosX,lightPosY,lightPosZ,1.f};
 	
@@ -189,7 +191,6 @@ void drawModel(Model &model, Shader &shader,glm::mat4 mt) {
 	shader.setUniform("lightProjectionMatrix",lightProjection);
 	
 	shader.setUniform("viewPos",view_pos);
-	shader.setUniform("lightPos",lightPosition);
 	
 	// setup light and material
 	shader.setLight(mats[0]*lightPosition, glm::vec3{1.f,1.f,1.f}, 0.4f);

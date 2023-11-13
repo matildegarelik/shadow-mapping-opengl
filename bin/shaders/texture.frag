@@ -6,7 +6,7 @@ in vec2 fragTexCoords;
 in vec4 lightVSPosition;
 in vec4 fragPosLightSpace;
 
-uniform vec3 lightPos;
+uniform vec3 lightPosition;
 uniform vec3 viewPos;
 
 // propiedades del material
@@ -70,7 +70,7 @@ void main() {
 	vec3 phong = calcPhong(lightVSPosition, lightColor, ambientStrength,
 						   ambientColor,diffuseColor,
 						   specularColor, shininess);
-	float shadow = ShadowCalculation(fragPosLightSpace);
+	float shadow = /*ShadowCalculation(fragPosLightSpace)*/0;
 	if(shadow == -1){
 		fragColor=vec4(1.f,0.f,0.f,1.f);
 	}else{
