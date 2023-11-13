@@ -19,7 +19,7 @@ current_source=main.cpp
 path_char=\
 [source]
 path=main.cpp
-cursor=153:0
+cursor=132:1
 open=true
 [source]
 path=..\common\utils\ObjMesh.cpp
@@ -127,7 +127,7 @@ cursor=39:47
 open=true
 [other]
 path=..\bin\shaders\texture.vert
-cursor=25:3
+cursor=7:23
 open=true
 [other]
 path=..\bin\shaders\funcs\calcPhong.frag

@@ -55,6 +55,11 @@ glm::vec3 posChookity={0.f,0.f,0.f};
 float near_plane = 1.1f, far_plane = 7.5f;
 glm::mat4 lightProjection = glm::ortho(-.50f, .50f, -.50f, .50f, near_plane, far_plane); 
 
+/// NUEVO 2
+float lightRotationAngle = glfwGetTime() * 0.5f;
+float lightDistance = 2.0f;
+float rotate, width;
+
 int main() {
 	
 	// initialize window and setup callbacks
@@ -126,11 +131,12 @@ int main() {
 		draw_buffers.draw(win_width,win_height);
 		
 		// settings sub-window
-		window.ImGuiDialog("Find The Choosen One!",[&](){
-			ImGui::LabelText("","Time: %.3f s",time_to_find_the_one);
-			ImGui::Combo("Level (L)", &level, vlevels);
-			//if (ImGui::Button("Restart (R)")) initInstances();
-			ImGui::SliderFloat("outline width",&outline_width,.05,.5);
+		window.ImGuiDialog("Shadow Mapping",[&](){
+			ImGui::SliderFloat("LightProjection Width",&width,0.f,1.5f);
+			ImGui::SliderFloat("Near plane",&near_plane,0.f,2.f);
+			ImGui::SliderFloat("Far plane",&far_plane,5.f,15.f);
+			ImGui::SliderFloat("Rotate",&rotate,0,2);
+			
 			draw_buffers.addImGuiSettings(window);
 		});
 		glfwSwapInterval(1); 
@@ -145,8 +151,6 @@ int main() {
 void keyboardCallback(GLFWwindow* glfw_win, int key, int scancode, int action, int mods) {
 	if (action==GLFW_PRESS) {
 		switch (key) {
-		//case 'R': initInstances(); break;
-		case 'L': level = (level+1)%vlevels.size(); break;
 		case 'B': draw_buffers.setNextBuffer(); break;
 		}
 	}
@@ -166,10 +170,20 @@ void drawModel(Model &model, Shader &shader,glm::mat4 mt) {
 					   mats[0]*mt,
 					   mats[1],
 					   mats[2]);
+
+	/// NUEVO 2
+	lightRotationAngle = glfwGetTime() * rotate;
+	lightDistance = 1.0f;
+	float lightPosX = cos(lightRotationAngle) * lightDistance;
+	float lightPosY = lightPosition.y;
+	float lightPosZ = sin(lightRotationAngle) * lightDistance;
+	glm::vec4 lightPosition={lightPosX,lightPosY,lightPosZ,1.f};
 	
 	glm::mat4 lightView = glm::lookAt(glm::vec3(mats[0]*lightPosition), 
 									  glm::vec3( 0.0f, 0.0f,  0.0f), 
 									  glm::vec3( 0.0f, 1.0f,  0.0f));
+	
+	glm::mat4 lightProjection = glm::ortho(-width, width, -width, width, near_plane, far_plane); 
 	
 	shader.setUniform("lightViewMatrix",lightView);
 	shader.setUniform("lightProjectionMatrix",lightProjection);
