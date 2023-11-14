@@ -19,6 +19,7 @@ uniform float opacity;
 
 uniform float bias;
 uniform bool pcf;
+uniform bool shadow_active;
 
 // propiedades de la luz
 uniform float ambientStrength;
@@ -75,14 +76,18 @@ void main() {
 	vec3 phong = calcPhong(lightVSPosition, lightColor, ambientStrength,
 		ambientColor,diffuseColor,
 		specularColor, shininess);
-	
-	float shadow = ShadowCalculation(fragPosLightSpace);
-	if(shadow == -1){
-		fragColor=vec4(1.f,0.f,0.f,1.f);
+	if(shadow_active){
+		float shadow = ShadowCalculation(fragPosLightSpace);
+		if(shadow == -1){
+			fragColor=vec4(1.f,0.f,0.f,1.f);
+		}else{
+			vec3 lighting= (vec3(ambientColor*ambientStrength) * shadow+ phong*(1.f-shadow));
+			//fragColor = vec4(vec3(1.0-shadow),opacity);
+			fragColor = vec4(lighting,opacity);
+		}
 	}else{
-		vec3 lighting= (vec3(ambientColor*ambientStrength) * shadow+ phong*(1.f-shadow));
-		//fragColor = vec4(vec3(1.0-shadow),opacity);
-		fragColor = vec4(lighting,opacity);
+		fragColor = vec4(phong,opacity);
 	}
+	
 }
 

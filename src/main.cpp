@@ -52,7 +52,7 @@ Shader shader_test,shader_phong;
 
 //glm::vec4 lightPosition={-1.0,1.f,1.f,1.f};
 glm::vec3 posChookity={0.f,0.f,0.f};
-float near_plane = 1.1f, far_plane = 7.5f;
+float near_plane = .6f, far_plane = 7.5f;
 //glm::mat4 lightProjection = glm::ortho(-.50f, .50f, -.50f, .50f, near_plane, far_plane); 
 
 /// NUEVO 2
@@ -61,7 +61,7 @@ float lightRotationAngle = /*glfwGetTime() * */0.5f;
 float lightDistance = 2.0f;
 float rotate, width=2.0f;
 float bias= 0.f;
-bool pcf=0;
+bool pcf=0, shadow_active=0;
 
 int main() {
 	
@@ -150,12 +150,13 @@ int main() {
 		
 		// settings sub-window
 		window.ImGuiDialog("Shadow Mapping",[&](){
+			ImGui::Checkbox("Activate shadow",&shadow_active);
 			ImGui::SliderFloat("LightProjection Width",&width,-1.5f,2.5f);
 			ImGui::SliderFloat("Near plane",&near_plane,0.f,2.f);
 			ImGui::SliderFloat("Far plane",&far_plane,5.f,15.f);
 			ImGui::SliderFloat("Rotate manual",&rotate,0,8);
 			ImGui::Checkbox("Rotate autom",&rotate_autom);
-			ImGui::SliderFloat("Bias",&bias,0,1);
+			ImGui::SliderFloat("Bias",&bias,0,0.2);
 			ImGui::Checkbox("PCF",&pcf);
 			
 			draw_buffers.addImGuiSettings(window);
@@ -213,6 +214,7 @@ void drawModel(Model &model, Shader &shader,glm::mat4 mt) {
 	
 	shader.setUniform("bias",bias);
 	shader.setUniform("pcf",pcf);
+	shader.setUniform("shadow_active",shadow_active);
 	
 	shader.setUniform("depthTexture",0);
 	
