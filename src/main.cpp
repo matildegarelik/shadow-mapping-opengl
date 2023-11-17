@@ -20,7 +20,7 @@
 // window, models and settings
 Window window;
 DrawBuffers draw_buffers;
-Model model,model2;
+Model model,model2,model3,model4;
 Texture alternative_texture;
 struct Instance {
 	glm::mat4 matrix;
@@ -33,8 +33,6 @@ int selected_instance = -1;
 double time_to_find_the_one;
 Shader shader_texture, shader_silhouette;
 float angle_object = 0.f, outline_width  = 0.125f;
-int level = 1;
-const std::vector<std::string> vlevels = { "Easy", "Medium", "Hard" };
 
 glm::mat4 mti =  {{1.f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.f,0.f},{0.f,0.f,0.f,1.f}};
 void drawModel(Model &model, Shader &shader,glm::mat4 mt=mti);
@@ -63,6 +61,9 @@ float rotate, width=2.0f;
 float bias= 0.f;
 bool pcf=0, shadow_active=0;
 
+int current_escena = 0;
+const std::vector<std::string> escena_names = {"Chookity","Cubes","Teapot"};
+
 int main() {
 	
 	// initialize window and setup callbacks
@@ -81,6 +82,8 @@ int main() {
 	// load model and init instances
 	model = Model::loadSingle("chookity");
 	model2 = Model::loadSingle("track",Model::fNoTextures);
+	model3 = Model::loadSingle("cubo1",Model::fNoTextures);
+	model4 = Model::loadSingle("teapot",Model::fNoTextures);
 	
 	alternative_texture = Texture("models/choosen.png",0);
 	
@@ -106,11 +109,21 @@ int main() {
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	// matriz transformaci髇 pollo
+	// matriz transformaci锟絥 pollo
 	glm::mat4 mt1 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{0.f,0.f,0.f,1.f}};
-	// matriz transformaci髇 piso
+	// matriz transformaci锟絥 piso
 	glm::mat4 mt2 =  {{1.f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.f,0.f},{0.f,-0.25f,0.f,1.f}};
-	
+	// matriz transformaci贸n cubo 1
+	glm::mat4 mt3 = {{0.2f, 0.f, 0.f, 0.f},{0.f, 0.2f, 0.f, 0.f},{0.f, 0.f, 0.2f, 0.f},{0.5f, 0.2f, 0.0f, 1.0f}};
+	// matriz transformaci贸n cubo 2
+	glm::mat4 mt4 = {{0.15f, 0.f, 0.f, 0.f},{0.f, 0.15f, 0.f, 0.f},{0.f, 0.f, 0.15f, 0.f},{0.f, -0.1f, 0.0f, 1.0f}};
+	// matriz transformaci贸n cubo 3
+	glm::mat4 mt5 = {{0.05f, 0.f, 0.f, 0.f},{0.f, 0.05f, 0.f, 0.f},{0.f, 0.f, 0.05f, 0.f},{0.1f, -0.17f, 0.5f, 1.0f}};
+	float angle = glm::radians(45.0f);
+	mt5 = glm::rotate(mt5, angle, {1.f,0.f,1.f});
+	// matriz transformaci贸n teapot
+	glm::mat4 mt6 = {{.5f,0.f,0.f,0.f},{0.f,.5f,0.f,0.f},{0.f,0.f,.5f,0.f},{0.f,0.f,0.f,1.f}};
+
 	do {
 		view_angle = std::min(std::max(view_angle,0.01f),1.72f);
 				
@@ -119,8 +132,20 @@ int main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glViewport(0,0,SHADOW_WIDTH,SHADOW_HEIGHT);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		drawModel(model,shader_test,mt1);
+
+		if (current_escena == 0){
+			drawModel(model,shader_test,mt1);
+		}
+		if (current_escena == 1){
+			drawModel(model3,shader_test,mt3);
+			drawModel(model3,shader_test,mt4);
+			drawModel(model3,shader_test,mt5);
+		}
+		if (current_escena == 2){
+			drawModel(model4,shader_test,mt6);
+		}
 		drawModel(model2,shader_test,mt2);
+		
 		
 		//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		
@@ -132,24 +157,33 @@ int main() {
 		shader_texture.use();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
-		if(model.texture.isOk()){
-			drawModel(model,shader_texture,mt1);
-		}else{
-			drawModel(model,shader_phong,mt1);
-		}
 		
+		if (current_escena == 0){
+			if(model.texture.isOk()){
+				drawModel(model,shader_texture,mt1);
+			}else{
+				drawModel(model,shader_phong,mt1);
+			}
+		}
+		if (current_escena == 1){
+			drawModel(model3,shader_phong,mt3);
+			drawModel(model3,shader_phong,mt4);
+			drawModel(model3,shader_phong,mt5);
+		}
+		if (current_escena == 2){
+			drawModel(model4,shader_phong,mt6);
+		}
 		if(model2.texture.isOk()){
 			drawModel(model2,shader_texture,mt2);
 		}else{
 			drawModel(model2,shader_phong,mt2);
-		}
-		
-		
+		}		
 		
 		draw_buffers.draw(win_width,win_height);
 		
 		// settings sub-window
 		window.ImGuiDialog("Shadow Mapping",[&](){
+			ImGui::Combo("Escena", &current_escena,escena_names);
 			ImGui::Checkbox("Activate shadow",&shadow_active);
 			ImGui::SliderFloat("LightProjection Width",&width,-1.5f,2.5f);
 			ImGui::SliderFloat("Near plane",&near_plane,0.f,2.f);
