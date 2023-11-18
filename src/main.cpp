@@ -20,7 +20,7 @@
 // window, models and settings
 Window window;
 DrawBuffers draw_buffers;
-Model model,model2,model3,model4;
+Model model,model2,model3,model4,model5,model6;
 Texture alternative_texture;
 struct Instance {
 	glm::mat4 matrix;
@@ -84,6 +84,8 @@ int main() {
 	model2 = Model::loadSingle("track",Model::fNoTextures);
 	model3 = Model::loadSingle("cubo1",Model::fNoTextures);
 	model4 = Model::loadSingle("teapot",Model::fNoTextures);
+	model5 = Model::loadSingle("fish",Model::fNoTextures);
+	model6 = Model::loadSingle("esfera",Model::fNoTextures);
 	
 	alternative_texture = Texture("models/choosen.png",0);
 	
@@ -109,21 +111,37 @@ int main() {
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	// matriz transformaci�n pollo
+	// matriz transformacion pollo
 	glm::mat4 mt1 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{0.f,0.f,0.f,1.f}};
-	// matriz transformaci�n piso
+	// matriz transformacion piso
 	glm::mat4 mt2 =  {{1.f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.f,0.f},{0.f,-0.25f,0.f,1.f}};
-	// matriz transformación cubo 1
+	// matriz transformacion cubo 1
 	glm::mat4 mt3 = {{0.2f, 0.f, 0.f, 0.f},{0.f, 0.2f, 0.f, 0.f},{0.f, 0.f, 0.2f, 0.f},{0.5f, 0.2f, 0.0f, 1.0f}};
-	// matriz transformación cubo 2
+	// matriz transformacion cubo 2
 	glm::mat4 mt4 = {{0.15f, 0.f, 0.f, 0.f},{0.f, 0.15f, 0.f, 0.f},{0.f, 0.f, 0.15f, 0.f},{0.f, -0.1f, 0.0f, 1.0f}};
-	// matriz transformación cubo 3
+	// matriz transformacion cubo 3
 	glm::mat4 mt5 = {{0.05f, 0.f, 0.f, 0.f},{0.f, 0.05f, 0.f, 0.f},{0.f, 0.f, 0.05f, 0.f},{0.1f, -0.17f, 0.5f, 1.0f}};
 	float angle = glm::radians(45.0f);
 	mt5 = glm::rotate(mt5, angle, {1.f,0.f,1.f});
-	// matriz transformación teapot
-	glm::mat4 mt6 = {{.5f,0.f,0.f,0.f},{0.f,.5f,0.f,0.f},{0.f,0.f,.5f,0.f},{0.f,0.f,0.f,1.f}};
-
+	// matriz transformacion teapot
+	glm::mat4 mt6 = {{.5f,0.f,0.f,0.f},{0.f,.5f,0.f,0.f},{0.f,0.f,.5f,0.f},{0.f,0.3f,0.f,1.f}};
+	// matriz transformacion fish
+	glm::mat4 mt7 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{0.5f,0.1f,0.5f,1.f}};
+	// matriz transformacion esfera
+	glm::mat4 mt8 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{-0.5f,0.f,0.5f,1.f}};
+	// matriz transformacion cubo 4
+	glm::mat4 mt9 = {{0.2f, 0.f, 0.f, 0.f},{0.f, 0.2f, 0.f, 0.f},{0.f, 0.f, 0.2f, 0.f},{0.1f, -0.17f, 0.5f, 1.0f}};
+	angle = glm::radians(45.0f);
+	mt9 = glm::rotate(mt9, angle, {1.f,0.f,1.f});
+	// matriz transformacion pollo 2
+	glm::mat4 mt10 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{0.5f,0.f,0.3f,1.f}};
+	// matriz transformacion esfera
+	glm::mat4 mt11 =  {{.4f,0.f,0.f,0.f},{0.f,.4f,0.f,0.f},{0.f,0.f,.4f,0.f},{0.5f,0.15f,-0.5f,1.f}};
+	// matriz transformacion cubo 4
+	glm::mat4 mt12 = {{0.2f, 0.f, 0.f, 0.f},{0.f, 0.2f, 0.f, 0.f},{0.f, 0.f, 0.2f, 0.f},{-0.15f, -0.17f, -0.5f, 1.0f}};
+	angle = glm::radians(45.0f);
+	mt12 = glm::rotate(mt12, angle, {1.f,0.f,1.f});
+	
 	do {
 		view_angle = std::min(std::max(view_angle,0.01f),1.72f);
 				
@@ -142,7 +160,13 @@ int main() {
 			drawModel(model3,shader_test,mt5);
 		}
 		if (current_escena == 2){
+			drawModel(model,shader_test,mt10);
+			drawModel(model3,shader_test,mt9);
+			drawModel(model3,shader_test,mt12);
 			drawModel(model4,shader_test,mt6);
+//			drawModel(model5,shader_test,mt7);
+			drawModel(model6,shader_test,mt8);
+			drawModel(model6,shader_test,mt11);
 		}
 		drawModel(model2,shader_test,mt2);
 		
@@ -171,7 +195,17 @@ int main() {
 			drawModel(model3,shader_phong,mt5);
 		}
 		if (current_escena == 2){
+			if(model.texture.isOk()){
+				drawModel(model,shader_texture,mt10);
+			}else{
+				drawModel(model,shader_phong,mt10);
+			}
+			drawModel(model3,shader_phong,mt9);
+			drawModel(model3,shader_phong,mt12);
 			drawModel(model4,shader_phong,mt6);
+//			drawModel(model5,shader_phong,mt7);
+			drawModel(model6,shader_phong,mt8);
+			drawModel(model6,shader_phong,mt11);
 		}
 		if(model2.texture.isOk()){
 			drawModel(model2,shader_texture,mt2);
