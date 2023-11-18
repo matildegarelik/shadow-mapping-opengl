@@ -59,7 +59,7 @@ float lightRotationAngle = /*glfwGetTime() * */0.5f;
 float lightDistance = 2.0f;
 float rotate, width=2.0f;
 float bias= 0.f;
-bool pcf=0, shadow_active=0;
+bool pcf=0, shadow_active=0, cull_face=0;
 
 int current_escena = 0;
 const std::vector<std::string> escena_names = {"Chookity","Cubes","Teapot"};
@@ -150,7 +150,11 @@ int main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glViewport(0,0,SHADOW_WIDTH,SHADOW_HEIGHT);
 		glClear(GL_DEPTH_BUFFER_BIT);
-
+		if(cull_face){
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+		}
+		
 		if (current_escena == 0){
 			drawModel(model,shader_test,mt1);
 		}
@@ -169,8 +173,10 @@ int main() {
 			drawModel(model6,shader_test,mt11);
 		}
 		drawModel(model2,shader_test,mt2);
-		
-		
+		if(cull_face){
+			glCullFace(GL_BACK);
+			glDisable(GL_CULL_FACE);
+		}		
 		//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		
 		// 2
@@ -226,6 +232,7 @@ int main() {
 			ImGui::Checkbox("Rotate autom",&rotate_autom);
 			ImGui::SliderFloat("Bias",&bias,0,0.2);
 			ImGui::Checkbox("PCF",&pcf);
+			ImGui::Checkbox("Cull Face",&cull_face);
 			
 			draw_buffers.addImGuiSettings(window);
 		});
