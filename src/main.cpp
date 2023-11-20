@@ -50,7 +50,7 @@ Shader shader_test,shader_phong;
 
 //glm::vec4 lightPosition={-1.0,1.f,1.f,1.f};
 glm::vec3 posChookity={0.f,0.f,0.f};
-float near_plane = .6f, far_plane = 7.5f;
+float near_plane = .3f, far_plane = 7.5f;
 //glm::mat4 lightProjection = glm::ortho(-.50f, .50f, -.50f, .50f, near_plane, far_plane); 
 
 /// NUEVO 2
@@ -114,7 +114,7 @@ int main() {
 	// matriz transformacion pollo
 	glm::mat4 mt1 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{0.f,0.f,0.f,1.f}};
 	// matriz transformacion piso
-	glm::mat4 mt2 =  {{1.f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.f,0.f},{0.f,-0.25f,0.f,1.f}};
+	glm::mat4 mt2 =  {{1.5f,0.f,0.f,0.f},{0.f,1.f,0.f,0.f},{0.f,0.f,1.5f,0.f},{0.f,-0.25f,0.f,1.f}};
 	// matriz transformacion cubo 1
 	glm::mat4 mt3 = {{0.2f, 0.f, 0.f, 0.f},{0.f, 0.2f, 0.f, 0.f},{0.f, 0.f, 0.2f, 0.f},{0.5f, 0.2f, 0.0f, 1.0f}};
 	// matriz transformacion cubo 2
@@ -124,13 +124,13 @@ int main() {
 	float angle = glm::radians(45.0f);
 	mt5 = glm::rotate(mt5, angle, {1.f,0.f,1.f});
 	// matriz transformacion teapot
-	glm::mat4 mt6 = {{.5f,0.f,0.f,0.f},{0.f,.5f,0.f,0.f},{0.f,0.f,.5f,0.f},{0.f,0.3f,0.f,1.f}};
+	glm::mat4 mt6 = {{.5f,0.f,0.f,0.f},{0.f,.5f,0.f,0.f},{0.f,0.f,.5f,0.f},{0.f,.3f,0.f,1.f}};
 	// matriz transformacion fish
-	glm::mat4 mt7 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{0.5f,0.1f,0.5f,1.f}};
+	glm::mat4 mt7 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{1.f,0.1f,1.5f,1.f}};
 	// matriz transformacion esfera
-	glm::mat4 mt8 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{-0.5f,0.f,0.5f,1.f}};
+	glm::mat4 mt8 =  {{.25f,0.f,0.f,0.f},{0.f,.25f,0.f,0.f},{0.f,0.f,.25f,0.f},{-1.f,0.f,0.f,1.f}};
 	// matriz transformacion cubo 4
-	glm::mat4 mt9 = {{0.2f, 0.f, 0.f, 0.f},{0.f, 0.2f, 0.f, 0.f},{0.f, 0.f, 0.2f, 0.f},{0.1f, -0.17f, 0.5f, 1.0f}};
+	glm::mat4 mt9 = {{0.2f, 0.f, 0.f, 0.f},{0.f, 0.2f, 0.f, 0.f},{0.f, 0.f, 0.2f, 0.f},{0.1f, 0.8f, 1.f, 1.0f}};
 	angle = glm::radians(45.0f);
 	mt9 = glm::rotate(mt9, angle, {1.f,0.f,1.f});
 	// matriz transformacion pollo 2
@@ -226,11 +226,11 @@ int main() {
 			ImGui::Combo("Escena", &current_escena,escena_names);
 			ImGui::Checkbox("Activate shadow",&shadow_active);
 			ImGui::SliderFloat("LightProjection Width",&width,-1.5f,2.5f);
-			ImGui::SliderFloat("Near plane",&near_plane,0.f,2.f);
+			ImGui::SliderFloat("Near plane",&near_plane,0.f,.5f);
 			ImGui::SliderFloat("Far plane",&far_plane,5.f,15.f);
 			ImGui::SliderFloat("Rotate manual",&rotate,0,8);
 			ImGui::Checkbox("Rotate autom",&rotate_autom);
-			ImGui::SliderFloat("Bias",&bias,0,0.2);
+			ImGui::SliderFloat("Bias",&bias,0,0.05);
 			ImGui::Checkbox("PCF",&pcf);
 			ImGui::Checkbox("Cull Face",&cull_face);
 			
